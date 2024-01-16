@@ -14,7 +14,6 @@ class handDetector():
         self.static_image_mode = static_image_mode
         self.max_num_hands = max_num_hands
         self.min_detection_confidence = min_detection_confidence
-
         self.mpHands = mp.solutions.hands
         self.hands = self.mpHands.Hands(static_image_mode=self.static_image_mode,
                                         max_num_hands=self.max_num_hands,
@@ -24,8 +23,6 @@ class handDetector():
     def findHands(self, img, draw=True):
         imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         self.results = self.hands.process(imgRGB)
-        # print(results.multi_hand_landmarks)
-
         if self.results.multi_hand_landmarks:
             for handLms in self.results.multi_hand_landmarks:
                 if draw:
@@ -39,10 +36,9 @@ class handDetector():
         if self.results.multi_hand_landmarks:
             myHand = self.results.multi_hand_landmarks[0]
             for id, lm in enumerate(myHand.landmark):
-                # print(id, lm)
                 h, w, c = img.shape
                 cx, cy = int(lm.x * w), int(lm.y * h)
-                # print(id, cx, cy)
+
                 lmList.append([id, cx, cy])
                 if draw:
                     cv2.circle(img, (cx, cy), 15, (255, 0, 255), cv2.FILLED)
@@ -51,9 +47,7 @@ class handDetector():
 
 
 def main():
-    ################################
     wCam, hCam = 640, 480
-    ################################
 
     cap = cv2.VideoCapture(0)
     cap.set(3, wCam)
@@ -66,8 +60,6 @@ def main():
     interface = devices.Activate(
         IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
     volume = cast(interface, POINTER(IAudioEndpointVolume))
-    # volume.GetMute()
-    # volume.GetMasterVolumeLevel()
     volRange = volume.GetVolumeRange()
     minVol = volRange[0]
     maxVol = volRange[1]
@@ -80,8 +72,6 @@ def main():
         img = detector.findHands(img)
         lmList = detector.findPosition(img, draw=False)
         if len(lmList) != 0:
-            # print(lmList[4], lmList[8])
-
             x1, y1 = lmList[4][1], lmList[4][2]
             x2, y2 = lmList[8][1], lmList[8][2]
             cx, cy = (x1 + x2) // 2, (y1 + y2) // 2
@@ -92,7 +82,6 @@ def main():
             cv2.circle(img, (cx, cy), 15, (255, 0, 255), cv2.FILLED)
 
             length = math.hypot(x2 - x1, y2 - y1)
-            # print(length)
 
             vol = np.interp(length, [hand_range[0], hand_range[1]], [minVol, maxVol])
             volBar = np.interp(length, [hand_range[0], hand_range[1]], [400, 150])
